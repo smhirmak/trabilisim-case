@@ -1,9 +1,19 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { CryptoDataItem, CryptoTickerData } from './types/types';
+import CryptoCard from './components/CryptoCard';
 
 function App() {
-  const [btc, setBtc] = useState<any>(null);
-  const [ltc, setLtc] = useState<any>(null);
+  const [coinsData, setCoinsData] = useState<{ [key: string]: CryptoDataItem[] }>({});
+
+  function processWebSocketData(data: CryptoTickerData) {
+    const instId = data.arg.instId;
+    if (data?.data)
+      setCoinsData((prevData) => ({
+        ...prevData,
+        [instId]: [...(prevData[instId] || []).slice(0, 9), data?.data?.[0]]
+      }));
+  }
 
   useEffect(() => {
     const ws = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
@@ -19,25 +29,47 @@ function App() {
             {
               channel: 'tickers',
               instId: 'LTC-USDT'
+            },
+            {
+              channel: 'tickers',
+              instId: 'ETH-USDT'
+            },
+            {
+              channel: 'tickers',
+              instId: 'XRP-USDT'
+            },
+            {
+              channel: 'tickers',
+              instId: 'BCH-USDT'
+            },
+            {
+              channel: 'tickers',
+              instId: 'DOGE-USDT'
             }
           ]
         })
       );
     };
     ws.onmessage = (event) => {
-      const variable = JSON.parse(event.data);
-      variable.arg.instId === 'BTC-USDT' ? setBtc(variable) : setLtc(variable);
+      const variable: CryptoTickerData = JSON.parse(event.data);
+      processWebSocketData(variable);
     };
     return () => {
       ws.close();
     };
   }, []);
-  // btc && console.log(btc?.data?.[0].last);
-  // ltc && console.log(ltc?.data?.[0].last);
+
   return (
     <div className="App">
       <h1>OKX API</h1>
-      <p>{btc && btc?.data?.[0].last}</p>
+
+      <div>
+        {Object.keys(coinsData).map((coinName: any, i) => {
+          const data = coinsData[coinName];
+
+          return <CryptoCard key={i} coinName={coinName} data={data} />;
+        })}
+      </div>
     </div>
   );
 }
