@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import { CryptoDataItem, CryptoTickerData } from './types/types';
 import CryptoCard from './components/CryptoCard';
+import { Box, Container } from '@mui/material';
 
 function App() {
   const [coinsData, setCoinsData] = useState<{ [key: string]: CryptoDataItem[] }>({});
+  const [loading, setLoading] = useState<boolean>(false);
 
   function processWebSocketData(data: CryptoTickerData) {
     const instId = data.arg.instId;
@@ -18,6 +20,7 @@ function App() {
   useEffect(() => {
     const ws = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
     ws.onopen = () => {
+      setLoading(true);
       ws.send(
         JSON.stringify({
           op: 'subscribe',
@@ -56,21 +59,37 @@ function App() {
     };
     return () => {
       ws.close();
+      setLoading(false);
     };
   }, []);
 
+  // console.log(coinsData);
+
   return (
-    <div className="App">
-      <h1>OKX API</h1>
-
-      <div>
-        {Object.keys(coinsData).map((coinName: any, i) => {
-          const data = coinsData[coinName];
-
-          return <CryptoCard key={i} coinName={coinName} data={data} />;
-        })}
-      </div>
-    </div>
+    <Container>
+      <h1>TRA Bilişim Case</h1>
+      <Box>
+        {loading ? (
+          <div>
+            {Object.keys(coinsData).map((coinName: any, i) => {
+              const data = coinsData[coinName];
+              return <CryptoCard key={i} coinName={coinName} data={data} />;
+            })}
+          </div>
+        ) : (
+          <Box
+            sx={{
+              position: 'fixed',
+              top: '50%',
+              bottom: '50%',
+              right: '50%',
+              left: '50%'
+            }}>
+            <span className="loader"></span>
+          </Box>
+        )}
+      </Box>
+    </Container>
   );
 }
 
