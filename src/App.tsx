@@ -3,10 +3,14 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import CryptoCard from './components/CryptoCard';
 import { CoinsEnum, CryptoDataItem, CryptoTickerData } from './types/types';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 function App() {
   const [coinsData, setCoinsData] = useState<{ [key in CoinsEnum]?: CryptoDataItem[] }>({});
   const [loading, setLoading] = useState<boolean>(false);
+  const themePage = useTheme();
+  const isMobile = useMediaQuery(themePage.breakpoints.down('md'));
 
   function processWebSocketData(data: CryptoTickerData) {
     const instId = data.arg.instId;
@@ -76,10 +80,12 @@ function App() {
 
   return (
     <Container>
-      <Typography variant="h3" component="h1" pt={3}>
-        Crypto Price List
-      </Typography>
-      <Box py={2}>
+      <Box display={'flex'} justifyContent={'center'} pt={3}>
+        <Typography variant={isMobile ? 'h4' : 'h3'} component="h1">
+          Crypto Price List
+        </Typography>
+      </Box>
+      <Box py={isMobile ? 1 : 2}>
         <Divider />
       </Box>
       <>
