@@ -1,23 +1,37 @@
-import { useState, useEffect } from 'react';
+import { Box, Container, Divider, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
 import './App.css';
-import { CryptoDataItem, CryptoTickerData } from './types/types';
 import CryptoCard from './components/CryptoCard';
+import { CoinsEnum, CryptoDataItem, CryptoTickerData } from './types/types';
 
 function App() {
-  const [coinsData, setCoinsData] = useState<{ [key: string]: CryptoDataItem[] }>({});
+  const [coinsData, setCoinsData] = useState<{ [key in CoinsEnum]?: CryptoDataItem[] }>({});
+  const [loading, setLoading] = useState<boolean>(false);
 
   function processWebSocketData(data: CryptoTickerData) {
     const instId = data.arg.instId;
     if (data?.data)
-      setCoinsData((prevData) => ({
-        ...prevData,
-        [instId]: [...(prevData[instId] || []).slice(0, 9), data?.data?.[0]]
-      }));
+      setCoinsData((prevData) => {
+        const updatedData = {
+          ...prevData,
+          [instId]: [...(prevData[instId] || [])]
+        };
+
+        if (!updatedData[instId] || updatedData[instId]!.length < 10) {
+          updatedData[instId] = [data.data[0], ...(updatedData[instId] || [])];
+        } else {
+          updatedData[instId]!.pop();
+          updatedData[instId] = [data.data[0], ...updatedData[instId]!];
+        }
+
+        return updatedData;
+      });
   }
 
   useEffect(() => {
     const ws = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
     ws.onopen = () => {
+      setLoading(true);
       ws.send(
         JSON.stringify({
           op: 'subscribe',
@@ -56,21 +70,41 @@ function App() {
     };
     return () => {
       ws.close();
+      setLoading(false);
     };
   }, []);
 
   return (
-    <div className="App">
-      <h1>OKX API</h1>
-
-      <div>
-        {Object.keys(coinsData).map((coinName: any, i) => {
-          const data = coinsData[coinName];
-
-          return <CryptoCard key={i} coinName={coinName} data={data} />;
-        })}
-      </div>
-    </div>
+    <Container>
+      <Typography variant="h3" component="h1" pt={3}>
+        Crypto Price List
+      </Typography>
+      <Box py={2}>
+        <Divider />
+      </Box>
+      <>
+        {loading ? (
+          <>
+            {Object.keys(coinsData)
+              .sort()
+              .map((coinName, i) => {
+                const data = coinsData[coinName as keyof typeof CoinsEnum];
+                return <CryptoCard key={i} coinName={coinName as CoinsEnum} data={data!} />;
+              })}
+          </>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '85vh'
+            }}>
+            <span className="loader"></span>
+          </Box>
+        )}
+      </>
+    </Container>
   );
 }
 

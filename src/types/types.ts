@@ -24,7 +24,29 @@ export interface CryptoDataItem {
 export interface CryptoTickerData {
   arg: {
     channel: string;
-    instId: string;
+    instId: CoinsEnum;
   };
   data: CryptoDataItem[];
 }
+
+export type ExpandedName = {
+  [key in CoinsEnum]: string;
+};
+
+export enum CoinsEnum {
+  'BTC-USDT' = 'BTC-USDT',
+  'LTC-USDT' = 'LTC-USDT',
+  'ETH-USDT' = 'ETH-USDT',
+  'BCH-USDT' = 'BCH-USDT',
+  'XRP-USDT' = 'XRP-USDT',
+  'DOGE-USDT' = 'DOGE-USDT'
+}
+
+export const expandedName: ExpandedName = {
+  [CoinsEnum['BTC-USDT']]: 'Bitcoin',
+  [CoinsEnum['LTC-USDT']]: 'Litecoin',
+  [CoinsEnum['ETH-USDT']]: 'Ethereum',
+  [CoinsEnum['BCH-USDT']]: 'Bitcoin Cash',
+  [CoinsEnum['XRP-USDT']]: 'Ripple',
+  [CoinsEnum['DOGE-USDT']]: 'Dogecoin'
+};
