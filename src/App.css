@@ -5,9 +5,9 @@
   display: inline-block;
   position: relative;
   border: 3.5px solid;
-  border-color: #000 #000 transparent transparent;
+  border-color: #fff #fff transparent transparent;
   box-sizing: border-box;
-  animation: rotation 1s linear infinite;
+  animation: rotation 1.25s linear infinite;
 }
 .loader::after,
 .loader::before {
@@ -25,14 +25,14 @@
   height: 52px;
   border-radius: 50%;
   box-sizing: border-box;
-  animation: rotationBack 0.5s linear infinite;
+  animation: rotationBack 0.75s linear infinite;
   transform-origin: center center;
 }
 .loader::before {
   width: 40px;
   height: 40px;
-  border-color: #000 #000 transparent transparent;
-  animation: rotation 1.5s linear infinite;
+  border-color: #fff #fff transparent transparent;
+  animation: rotation 1.75s linear infinite;
 }
 
 @keyframes rotation {

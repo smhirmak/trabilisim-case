@@ -1,20 +1,31 @@
-import { useState, useEffect } from 'react';
+import { Box, Container, Divider, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
 import './App.css';
-import { CryptoDataItem, CryptoTickerData } from './types/types';
 import CryptoCard from './components/CryptoCard';
-import { Box, Container } from '@mui/material';
+import { CoinsEnum, CryptoDataItem, CryptoTickerData } from './types/types';
 
 function App() {
-  const [coinsData, setCoinsData] = useState<{ [key: string]: CryptoDataItem[] }>({});
+  const [coinsData, setCoinsData] = useState<{ [key in CoinsEnum]?: CryptoDataItem[] }>({});
   const [loading, setLoading] = useState<boolean>(false);
 
   function processWebSocketData(data: CryptoTickerData) {
     const instId = data.arg.instId;
     if (data?.data)
-      setCoinsData((prevData) => ({
-        ...prevData,
-        [instId]: [...(prevData[instId] || []).slice(0, 9), data?.data?.[0]]
-      }));
+      setCoinsData((prevData) => {
+        const updatedData = {
+          ...prevData,
+          [instId]: [...(prevData[instId] || [])]
+        };
+
+        if (!updatedData[instId] || updatedData[instId]!.length < 10) {
+          updatedData[instId] = [data.data[0], ...(updatedData[instId] || [])];
+        } else {
+          updatedData[instId]!.pop();
+          updatedData[instId] = [data.data[0], ...updatedData[instId]!];
+        }
+
+        return updatedData;
+      });
   }
 
   useEffect(() => {
@@ -63,32 +74,36 @@ function App() {
     };
   }, []);
 
-  // console.log(coinsData);
-
   return (
     <Container>
-      <h1>TRA Bilişim Case</h1>
-      <Box>
+      <Typography variant="h3" component="h1" pt={3}>
+        Crypto Price List
+      </Typography>
+      <Box py={2}>
+        <Divider />
+      </Box>
+      <>
         {loading ? (
-          <div>
-            {Object.keys(coinsData).map((coinName: any, i) => {
-              const data = coinsData[coinName];
-              return <CryptoCard key={i} coinName={coinName} data={data} />;
-            })}
-          </div>
+          <>
+            {Object.keys(coinsData)
+              .sort()
+              .map((coinName, i) => {
+                const data = coinsData[coinName as keyof typeof CoinsEnum];
+                return <CryptoCard key={i} coinName={coinName as CoinsEnum} data={data!} />;
+              })}
+          </>
         ) : (
           <Box
             sx={{
-              position: 'fixed',
-              top: '50%',
-              bottom: '50%',
-              right: '50%',
-              left: '50%'
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '85vh'
             }}>
             <span className="loader"></span>
           </Box>
         )}
-      </Box>
+      </>
     </Container>
   );
 }
